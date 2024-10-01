@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Picker App</title>
+    <script src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs" data-app-key="qxk9pb63k2d7ugc"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://js.live.net/v7.2/OneDrive.js"></script>
+    <script src="./index.js"></script>
+</head>
+
+<body>
+
+    <h1>File Picker</h1>
+    <button onclick="chooseFromDropbox()">Choose from Dropbox</button>
+    <button onclick="chooseFromGoogleDrive()">Choose from Google Drive</button>
+    <button onclick="chooseFromOneDrive()">Choose from OneDrive</button>
+
+    <div id="file-output"></div>
+</body>
+
+</html>
