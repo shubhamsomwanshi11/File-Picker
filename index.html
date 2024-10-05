@@ -5,21 +5,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Picker App</title>
-    <script src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs" data-app-key="qxk9pb63k2d7ugc"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="https://apis.google.com/js/api.js"></script>
-    <script src="https://js.live.net/v7.2/OneDrive.js"></script>
+
+    <!-- DropBox -->
+    <script src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs"
+        data-app-key="qxk9pb63k2d7ugc"></script>
+    <script src="./js/dropbox.js"></script>
+
+    <!-- Google Drive -->
+    <!-- <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js"></script> -->
+    <!-- <script src="./js/google-drive.js"></script> -->
+
+    <!-- OneDrive -->
+    <!-- <script src="https://js.live.net/v7.2/OneDrive.js"></script>
+    <script src="./js/onedrive.js"></script> -->
+
+    <!-- Bulma -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+
+    <!-- External file Librearies to read files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.7.570/pdf.min.js"></script>
+
     <script src="./index.js"></script>
 </head>
 
 <body>
-
-    <h1>File Picker</h1>
-    <button onclick="chooseFromDropbox()">Choose from Dropbox</button>
-    <button onclick="chooseFromGoogleDrive()">Choose from Google Drive</button>
-    <button onclick="chooseFromOneDrive()">Choose from OneDrive</button>
-
-    <div id="file-output"></div>
+    <div class="container box mt-5">
+        <button class="button" onclick="chooseFromDropbox()">Choose from Dropbox</button>
+        <button class="button" onclick="chooseFromGoogleDrive()">Choose from Google Drive</button>
+        <button class="button" onclick="chooseFromOneDrive()">Choose from OneDrive</button>
+        <textarea name="" id="file-output" class="textarea mt-5"></textarea>
+        <div id="file"></div>
+        <img src="./loading.gif" id="loading"
+            style="position: absolute; top: 50%;left: 50%;transform: translate(-50%,-50%);width: 150px;display: none;"
+            alt="">
+    </div>
 </body>
 
 </html>
