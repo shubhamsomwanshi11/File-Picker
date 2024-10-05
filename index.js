@@ -1,9 +1,8 @@
-// Google Drive
 let oauthToken;
 
 function loadGooglePicker() {
     gapi.load('picker', { 'callback': onPickerApiLoad });
-    handleAuth();
+    if(!oauthToken) handleAuth();
 }
 
 function handleAuth() {
@@ -42,13 +41,70 @@ function createPicker() {
 function pickerCallback(data) {
     if (data.action === google.picker.Action.PICKED) {
         const file = data.docs[0];
-        console.log(file);
-        let output = document.getElementById('file');
-        output.innerHTML = `Selected file: <a href="https://drive.google.com/file/d/${file.id}/view" target="_blank">${file.name}</a>`;
+        const fileId = file.id;
+        const fileType = file.mimeType;
+        getFileContent(fileId, fileType);
     }
 }
 
+function getFileContent(fileId, fileType) {
+    const fileContentElem = document.getElementById('file-output');
+
+    fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        headers: {
+            'Authorization': `Bearer ${oauthToken}`
+        }
+    })
+    .then(response => {
+        if (fileType.includes('text') || fileType.includes('json') || fileType.includes('csv')) {
+            return response.text();
+        } else if (fileType === 'application/pdf') {
+            return response.blob();
+        } else {
+            throw new Error('Unsupported file type');
+        }
+    })
+    .then(content => {
+        if (fileType === 'application/pdf') {
+            console.log(content);
+            const url = URL.createObjectURL(content);
+            renderPDF(url);
+        } else {
+            fileContentElem.value = content; 
+        }
+    })
+    .catch(error => {
+        console.error('Error loading file content', error);
+        fileContentElem.value = 'Error loading file content.';
+    });
+}
+
+function renderPDF(pdfUrl) {
+    console.log(pdfUrl);
+    
+    const canvas = document.getElementById('pdfCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const loadingTask = pdfjsLib.getDocument(pdfUrl);
+    loadingTask.promise.then(function(pdf) {
+        // Fetch the first page
+        return pdf.getPage(1).then(function(page) {
+            const viewport = page.getViewport({ scale: 1.5 });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            // Render PDF page into the canvas context
+            const renderContext = {
+                canvasContext: ctx,
+                viewport: viewport
+            };
+            page.render(renderContext);
+        });
+    }).catch(function(error) {
+        console.error('Error rendering PDF:', error);
+    });
+}
+
 function chooseFromGoogleDrive() {
-    // loadGooglePicker();
-    alert("Work is going on...")
+    loadGooglePicker();
 }
