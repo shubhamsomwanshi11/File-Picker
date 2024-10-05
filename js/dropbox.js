@@ -1,19 +1,3 @@
-// DropBox
-// function chooseFromDropbox() {
-//     Dropbox.choose({
-//         success: function (files) {
-//             let output = document.getElementById('file-output');
-//             output.innerHTML = `Selected file: <a href="${files[0].link}" target="_blank">${files[0].name}</a>`;
-//         },
-//         cancel: function () {
-//             console.log('File selection cancelled');
-//         },
-//         linkType: "preview", // or "direct"
-//         multiselect: false, // allow multiple file selections
-//         extensions: ['.pdf', '.doc', '.docx', '.txt', '.jpg', '.png'] // restrict file types if needed
-//     });
-// }
-
 function chooseFromDropbox() {
     Dropbox.choose({
         success: function (files) {

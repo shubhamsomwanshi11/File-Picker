@@ -14,7 +14,7 @@
     <!-- Google Drive -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js"></script>
-    <!-- <script src="./js/google-drive.js"></script> -->
+    <script src="./js/google-drive.js"></script>
 
     <!-- OneDrive -->
     <!-- <script src="https://js.live.net/v7.2/OneDrive.js"></script>
@@ -26,20 +26,20 @@
     <!-- External file Librearies to read files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.7.570/pdf.min.js"></script>
-
-    <script src="./index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
 </head>
 
 <body>
     <div class="container box mt-5">
         <button class="button" onclick="chooseFromDropbox()">Choose from Dropbox</button>
-        <button class="button" onclick="chooseFromGoogleDrive()">Choose from Google Drive</button>
+        <button class="button" id="gdrive">Choose from Google Drive</button>
         <button class="button" onclick="chooseFromOneDrive()">Choose from OneDrive</button>
         <textarea name="" id="file-output" class="textarea mt-5"></textarea>
         <div id="file"></div>
         <img src="./loading.gif" id="loading"
             style="position: absolute; top: 50%;left: 50%;transform: translate(-50%,-50%);width: 150px;display: none;"
             alt="">
+        <canvas id="pdfCanvas" style="display: none;"></canvas>
     </div>
 </body>
 

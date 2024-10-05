@@ -1,14 +1,11 @@
 let oauthToken;
-
-// Load Google Picker API
 function loadGooglePicker() {
     gapi.load('picker', { 'callback': onPickerApiLoad });
-    handleAuth();
+    if (!oauthToken) handleAuth();
 }
 
-// Handle OAuth authentication
 function handleAuth() {
-    const tokenClient = google.accounts.oauth2.initTokenClient({
+    google.accounts.oauth2.initTokenClient({
         client_id: '944264633626-iso2nbknigo5h6rmm3dr6pcmmgj1tdmt.apps.googleusercontent.com',
         scope: 'https://www.googleapis.com/auth/drive.file',
         callback: (response) => {
@@ -19,22 +16,19 @@ function handleAuth() {
                 console.error('Error during authorization', response);
             }
         },
-    });
-    tokenClient.requestAccessToken();
+    }).requestAccessToken();
 }
 
-// Load Picker API and create picker
 function onPickerApiLoad() {
     if (oauthToken) {
         createPicker();
     }
 }
 
-// Create Google Picker
 function createPicker() {
     if (oauthToken) {
         const picker = new google.picker.PickerBuilder()
-            .addView(google.picker.ViewId.DOCS)  // Allow selection of files
+            .addView(google.picker.ViewId.DOCS)
             .setOAuthToken(oauthToken)
             .setDeveloperKey('AIzaSyBzeDKSf36y7LKi3x_KhgsjrNG_0ah3bow')
             .setCallback(pickerCallback)
@@ -43,85 +37,154 @@ function createPicker() {
     }
 }
 
-// Callback when file is picked
 function pickerCallback(data) {
     if (data.action === google.picker.Action.PICKED) {
         const file = data.docs[0];
         const fileId = file.id;
-        const mimeType = file.mimeType;
-        handleFileSelection(fileId, mimeType);  // Handle the file content display based on type
+        const fileType = file.mimeType;
+        document.getElementById('loading').style.display = 'block';
+        getFileContent(fileId, fileType);
     }
 }
 
-// Handle file content based on file type
-function handleFileSelection(fileId, mimeType) {
-    if (mimeType === 'text/plain') {
-        getFileContent(fileId, displayTextFile); // For plain text files
-    } else if (mimeType === 'application/pdf') {
-        getPDFContent(fileId);  // For PDF files
-    } else {
-        alert("File type not supported for preview.");
-    }
+function getFileContent(fileId, fileType) {
+    const fileContentElem = document.getElementById('file-output');
+
+    fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        headers: {
+            'Authorization': `Bearer ${oauthToken}`
+        }
+    })
+        .then(response => {
+            if (fileType.includes('text') || fileType.includes('json') ||
+                fileType.includes('csv') ||
+                fileType.includes('javascript') ||  
+                fileType.includes('css') ||                                     
+                fileType.includes('python') ||                                  
+                fileType.includes('java') ||                                    
+                fileType.includes('cpp') ||                                                                          
+                fileType.includes('text/x-csharp') ||                           
+                fileType.includes('text/x-go') ||                               
+                fileType.includes('text/x-kotlin') ||                           
+                fileType.includes('text/x-ruby') ||                             
+                fileType.includes('text/x-perl') ||                             
+                fileType.includes('text/x-php') ||                              
+                fileType.includes('text/x-sql') ||                              
+                fileType.includes('text/x-swift') ||                            
+                fileType.includes('application/xml') ||                         
+                fileType.includes('application/x-sh') ||                        
+                fileType.includes('text/x-rustsrc') ||                          
+                fileType.includes('text/x-scala') ||                            
+                fileType.includes('text/x-typescript') ||                       
+                fileType.includes('text/x-haskell') ||                          
+                fileType.includes('application/x-httpd-php') ||                 
+                fileType.includes('text/x-markdown') ||                         
+                fileType.includes('application/x-lua') ||                       
+                fileType.includes('application/x-tcl') ||                       
+                fileType.includes('application/x-r') ||                         
+                fileType.includes('application/x-ruby') ||                      
+                fileType.includes('text/x-matlab')
+            ) {
+                return response.text(); // Get content as text
+            } else if (fileType === 'application/pdf') {
+                return response.arrayBuffer(); // PDF as ArrayBuffer
+            } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                return response.blob(); // MS Word .docx as Blob
+            } else if (fileType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+                return response.arrayBuffer(); // Excel .xlsx as ArrayBuffer
+            } else if (fileType === 'application/vnd.google-apps.document') {
+                return response.text(); // Google Docs as plain text
+            } else {
+                throw new Error('Unsupported file type');
+            }
+        })
+        .then(content => {
+            if (fileType === 'application/pdf') {
+                extractTextFromPDF(content); // Extract text from the PDF ArrayBuffer
+            } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                extractTextFromDocx(content); // Word .docx text extraction
+            } else if (fileType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+                extractTextFromExcel(content); // Excel .xlsx text extraction
+            } else {
+                fileContentElem.value = content; // Display text, JSON, CSV, Google Docs in textarea
+            }
+        })
+        .catch(error => {
+            console.error('Error loading file content', error);
+            fileContentElem.value = 'Error loading file content.';
+        })
+        .finally(() => {
+            // Hide loader after file content is processed
+            document.getElementById('loading').style.display = 'none';
+        });
+
 }
 
-// Fetch file content from Google Drive
-function getFileContent(fileId, callback) {
-    gapi.client.drive.files.get({
-        fileId: fileId,
-        alt: 'media'
-    }).then(function (response) {
-        callback(response.body);  // Pass the file content to the callback
+// Open google Picker
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById('gdrive').addEventListener('click', loadGooglePicker);
+});
+
+
+// Function to extract text from PDF
+function extractTextFromPDF(pdfData) {
+    const fileContentElem = document.getElementById('file-output');
+    const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+
+    loadingTask.promise.then(function (pdf) {
+        let textContent = '';
+
+        // Loop through all pages to extract text
+        const maxPages = pdf.numPages;
+        let countPromises = []; // Store all page text extraction promises
+
+        for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
+            let page = pdf.getPage(pageNum);
+
+            countPromises.push(
+                page.then(function (page) {
+                    return page.getTextContent().then(function (textContentObj) {
+                        let pageText = textContentObj.items.map(item => item.str).join(' ');
+                        textContent += pageText + '\n'; // Add page text with newline
+                    });
+                })
+            );
+        }
+
+        // Wait for all pages to be processed
+        Promise.all(countPromises).then(function () {
+            fileContentElem.value = textContent; // Show the extracted PDF text in the textarea
+        });
+    }).catch(function (error) {
+        console.error('Error extracting PDF text:', error);
+        fileContentElem.value = 'Error extracting text from PDF.';
     });
 }
 
-// Fetch PDF content and display it in textarea using pdf.js
-function getPDFContent(fileId) {
-    // First, get the file metadata to obtain download URL
-    try {
-        gapi.client.drive.files.get({
-            fileId: fileId,
-            fields: 'id, name, mimeType, webContentLink'
-        }).then(function (response) {
-            const downloadUrl = response.result.webContentLink;
-            if (downloadUrl) {
-                fetch(downloadUrl, {
-                    headers: { Authorization: 'Bearer ' + oauthToken }
-                })
-                    .then(res => res.blob())
-                    .then(blob => {
-                        const reader = new FileReader();
-                        reader.onload = function (e) {
-                            const arrayBuffer = e.target.result;
-                            const pdfjsLib = window['pdfjsLib'];
-                            pdfjsLib.getDocument({ data: arrayBuffer }).promise.then(function (pdf) {
-                                let output = '';
-                                for (let i = 1; i <= pdf.numPages; i++) {
-                                    pdf.getPage(i).then(function (page) {
-                                        page.getTextContent().then(function (textContent) {
-                                            textContent.items.forEach(function (item) {
-                                                output += item.str + ' ';
-                                            });
-                                            document.getElementById('file-output').value = output;
-                                        });
-                                    });
-                                }
-                            });
-                        };
-                        reader.readAsArrayBuffer(blob);
-                    });
-            }
+// Function to extract text from MS Word (.docx) files using mammoth.js
+function extractTextFromDocx(blob) {
+    const fileContentElem = document.getElementById('file-output');
+    mammoth.extractRawText({ blob: blob })
+        .then(function (result) {
+            fileContentElem.value = result.value;
+        })
+        .catch(function (error) {
+            console.error('Error extracting Word document text:', error);
+            fileContentElem.value = 'Error extracting text from Word document.';
         });
-    } catch (error) {
-        console.log(error);
-    }
 }
 
-// Display plain text file content in textarea
-function displayTextFile(content) {
-    document.getElementById('file-output').value = content;
-}
+// Function to extract text from Excel (.xlsx) files using xlsx.js
+function extractTextFromExcel(arrayBuffer) {
+    const fileContentElem = document.getElementById('file-output');
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    let textContent = '';
 
-// Trigger file selection from Google Drive
-function chooseFromGoogleDrive() {
-    loadGooglePicker();
+    workbook.SheetNames.forEach(function (sheetName) {
+        const sheet = workbook.Sheets[sheetName];
+        const csv = XLSX.utils.sheet_to_csv(sheet);
+        textContent += `Sheet: ${sheetName}\n${csv}\n\n`;
+    });
+
+    fileContentElem.value = textContent;
 }
