@@ -31,15 +31,23 @@
 
 <body>
     <div class="container box mt-5">
-        <button class="button" onclick="chooseFromDropbox()">Choose from Dropbox</button>
-        <button class="button" id="gdrive">Choose from Google Drive</button>
-        <button class="button" onclick="chooseFromOneDrive()">Choose from OneDrive</button>
+        <div>
+            <button class="button" onclick="chooseFromDropbox()">Choose from Dropbox</button>
+            <button class="button" id="gdrive">Choose from Google Drive</button>
+            <button class="button" onclick="chooseFromOneDrive()">Choose from OneDrive</button>
+        </div>
         <textarea name="" id="file-output" class="textarea mt-5"></textarea>
         <div id="file"></div>
         <img src="./loading.gif" id="loading"
             style="position: absolute; top: 50%;left: 50%;transform: translate(-50%,-50%);width: 150px;display: none;"
             alt="">
-        <canvas id="pdfCanvas" style="display: none;"></canvas>
+        <div class="has-text-right mt-5">
+            <label for="fileName" class="has-text-weight-semibold">File Name : </label>
+            <input type="text" id="fileName" placeholder="Project Plans" style="width: auto;" class="input">
+            <button class="button" onclick="chooseFromDropbox()">Save to Dropbox</button>
+            <button class="button" id="gdrivesave">Save to Google Drive</button>
+            <button class="button" onclick="chooseFromOneDrive()">Save to OneDrive</button>
+        </div>
     </div>
 </body>
 

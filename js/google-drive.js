@@ -1,5 +1,7 @@
 let oauthToken;
+var isPicker = false;
 function loadGooglePicker() {
+    isPicker = true;
     gapi.load('picker', { 'callback': onPickerApiLoad });
     if (!oauthToken) handleAuth();
 }
@@ -11,7 +13,7 @@ function handleAuth() {
         callback: (response) => {
             if (response && response.access_token) {
                 oauthToken = response.access_token;
-                createPicker();
+                if (isPicker) createPicker();
             } else {
                 console.error('Error during authorization', response);
             }
@@ -58,31 +60,31 @@ function getFileContent(fileId, fileType) {
         .then(response => {
             if (fileType.includes('text') || fileType.includes('json') ||
                 fileType.includes('csv') ||
-                fileType.includes('javascript') ||  
-                fileType.includes('css') ||                                     
-                fileType.includes('python') ||                                  
-                fileType.includes('java') ||                                    
-                fileType.includes('cpp') ||                                                                          
-                fileType.includes('text/x-csharp') ||                           
-                fileType.includes('text/x-go') ||                               
-                fileType.includes('text/x-kotlin') ||                           
-                fileType.includes('text/x-ruby') ||                             
-                fileType.includes('text/x-perl') ||                             
-                fileType.includes('text/x-php') ||                              
-                fileType.includes('text/x-sql') ||                              
-                fileType.includes('text/x-swift') ||                            
-                fileType.includes('application/xml') ||                         
-                fileType.includes('application/x-sh') ||                        
-                fileType.includes('text/x-rustsrc') ||                          
-                fileType.includes('text/x-scala') ||                            
-                fileType.includes('text/x-typescript') ||                       
-                fileType.includes('text/x-haskell') ||                          
-                fileType.includes('application/x-httpd-php') ||                 
-                fileType.includes('text/x-markdown') ||                         
-                fileType.includes('application/x-lua') ||                       
-                fileType.includes('application/x-tcl') ||                       
-                fileType.includes('application/x-r') ||                         
-                fileType.includes('application/x-ruby') ||                      
+                fileType.includes('javascript') ||
+                fileType.includes('css') ||
+                fileType.includes('python') ||
+                fileType.includes('java') ||
+                fileType.includes('cpp') ||
+                fileType.includes('text/x-csharp') ||
+                fileType.includes('text/x-go') ||
+                fileType.includes('text/x-kotlin') ||
+                fileType.includes('text/x-ruby') ||
+                fileType.includes('text/x-perl') ||
+                fileType.includes('text/x-php') ||
+                fileType.includes('text/x-sql') ||
+                fileType.includes('text/x-swift') ||
+                fileType.includes('application/xml') ||
+                fileType.includes('application/x-sh') ||
+                fileType.includes('text/x-rustsrc') ||
+                fileType.includes('text/x-scala') ||
+                fileType.includes('text/x-typescript') ||
+                fileType.includes('text/x-haskell') ||
+                fileType.includes('application/x-httpd-php') ||
+                fileType.includes('text/x-markdown') ||
+                fileType.includes('application/x-lua') ||
+                fileType.includes('application/x-tcl') ||
+                fileType.includes('application/x-r') ||
+                fileType.includes('application/x-ruby') ||
                 fileType.includes('text/x-matlab')
             ) {
                 return response.text(); // Get content as text
@@ -123,6 +125,7 @@ function getFileContent(fileId, fileType) {
 // Open google Picker
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('gdrive').addEventListener('click', loadGooglePicker);
+    document.getElementById('gdrivesave').addEventListener('click', savetoGoogleDrive);
 });
 
 
@@ -187,4 +190,57 @@ function extractTextFromExcel(arrayBuffer) {
     });
 
     fileContentElem.value = textContent;
+}
+
+
+function savetoGoogleDrive() {
+    if (!oauthToken) {
+        handleAuth();
+    }
+    const textArea = document.getElementById('file-output');
+    const fileName = document.getElementById('fileName');
+    if (textArea.value) {
+        if (fileName.value) {
+            // Convert the textarea content to a Blob
+            const fileContent = textArea.value;
+            const fileBlob = new Blob([fileContent], { type: 'text/plain' });
+
+            // Define metadata for the file
+            const metadata = {
+                name: fileName.value, // File name on Google Drive
+                mimeType: 'text/plain' // Mime type of the file
+            };
+
+            // Create the multipart/related body
+            const form = new FormData();
+            form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+            form.append('file', fileBlob);
+
+            // Use the Google Drive API to upload the file
+            fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                method: 'POST',
+                headers: new Headers({
+                    'Authorization': `Bearer ${oauthToken}`
+                }),
+                body: form
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.id) {
+                        alert(`File uploaded successfully!`);
+                    } else {
+                        alert('Error during file upload.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error uploading file:', error);
+                    alert('Error during file upload.');
+                });
+        }
+        else {
+            alert("Please enter FileName.");
+        }
+    } else {
+        alert("Please enter text in the textarea to save.");
+    }
 }
