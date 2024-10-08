@@ -201,6 +201,7 @@ function savetoGoogleDrive() {
     const fileName = document.getElementById('fileName');
     if (textArea.value) {
         if (fileName.value) {
+            document.getElementById('loading').style.display = 'block';
             // Convert the textarea content to a Blob
             const fileContent = textArea.value;
             const fileBlob = new Blob([fileContent], { type: 'text/plain' });
@@ -227,7 +228,10 @@ function savetoGoogleDrive() {
                 .then(response => response.json())
                 .then(result => {
                     if (result.id) {
-                        alert(`File uploaded successfully!`);
+                        alert(`File saved to Drive successfully!`);
+                        if (confirm("Do you want to clear the text from TextBox ?")) {
+                            clearContent();
+                        }
                     } else {
                         alert('Error during file upload.');
                     }
@@ -235,6 +239,9 @@ function savetoGoogleDrive() {
                 .catch(error => {
                     console.error('Error uploading file:', error);
                     alert('Error during file upload.');
+                })
+                .finally(() => {
+                    document.getElementById('loading').style.display = 'none';
                 });
         }
         else {

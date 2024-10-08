@@ -43,20 +43,20 @@ function displayPDF(url) {
         .then(res => res.blob())
         .then(blob => {
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 const arrayBuffer = e.target.result;
                 const pdfjsLib = window['pdfjsLib'];
-                
-                pdfjsLib.getDocument({ data: arrayBuffer }).promise.then(function(pdf) {
+
+                pdfjsLib.getDocument({ data: arrayBuffer }).promise.then(function (pdf) {
                     let output = '';
                     const totalPages = pdf.numPages;
                     let pagesProcessed = 0;
 
                     // Process each page
                     for (let i = 1; i <= totalPages; i++) {
-                        pdf.getPage(i).then(function(page) {
-                            page.getTextContent().then(function(textContent) {
-                                textContent.items.forEach(function(item) {
+                        pdf.getPage(i).then(function (page) {
+                            page.getTextContent().then(function (textContent) {
+                                textContent.items.forEach(function (item) {
                                     output += item.str + ' ';
                                 });
 
@@ -70,7 +70,7 @@ function displayPDF(url) {
                             });
                         });
                     }
-                }).catch(function(error) {
+                }).catch(function (error) {
                     console.error("Error loading PDF:", error);
                     loader.style.display = 'none'; // Hide the loader on error
                 });
@@ -121,4 +121,93 @@ function fetchCSVFile(url) {
 function fetchOfficeFile(url, fileExtension) {
     document.getElementById('file-output').value = `Downloading and preview of ${fileExtension} not supported. You can download it directly: ${url}`;
     document.getElementById('loading').style.display = 'none';
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById('dropbox').addEventListener('click', chooseFromDropbox);
+    document.getElementById('dropboxsave').addEventListener('click', saveToDropbox);
+});
+
+let accessToken = null;
+
+// Function to redirect user to Dropbox OAuth in a new window
+function authenticateDropbox() {
+    return new Promise((resolve, reject) => {
+        const dropboxAppKey = 'qxk9pb63k2d7ugc'; // Replace with your actual Dropbox App key
+        const redirectUri = window.location.origin + '/auth.html'; // Redirect to auth.html to handle token
+        const dropboxOAuthUrl = `https://www.dropbox.com/oauth2/authorize?response_type=token&client_id=${dropboxAppKey}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+        // Open the Dropbox OAuth in a new popup window
+        const authWindow = window.open(dropboxOAuthUrl, 'DropboxAuth', 'width=600,height=500');
+
+        // Listen for message from the authentication popup
+        window.addEventListener('message', function (event) {
+            // Only accept messages from the auth window
+            if (event.origin === window.location.origin && event.data.token) {
+                accessToken = event.data.token; // Receive access token from the popup
+                resolve(accessToken); // Resolve the promise after authentication
+            } else {
+                reject(new Error('Authentication failed or was canceled.'));
+            }
+        }, false);
+    });
+}
+
+// Function to save text to Dropbox
+async function saveToDropbox() {
+    const textArea = document.getElementById('file-output');
+    const textContent = textArea.value.trim();
+    const filenameElement = document.getElementById('fileName');
+    let filename = filenameElement.value.trim();
+
+    // Check for file content
+    if (textContent === '') {
+        alert("Please enter some text to save.");
+        return;
+    }
+
+    // Check for filename
+    if (filename === '') {
+        alert("Please enter a valid file name.");
+        return;
+    }
+
+    // Append '.txt' extension to the filename
+    filename += '.txt';
+
+    // Check for access token, trigger authentication if not present
+    if (!accessToken) {
+        try {
+            await authenticateDropbox(); // Wait until the authentication completes
+        } catch (error) {
+            alert("Authentication failed or was canceled.");
+            return;
+        }
+    }
+    document.getElementById('loading').style.display = 'block';
+
+    const dbx = new Dropbox.Dropbox({ accessToken: accessToken });
+
+    // Convert text content to Blob before uploading
+    const blob = new Blob([textContent], { type: 'text/plain' });
+
+    dbx.filesUpload({
+        path: '/' + filename,
+        contents: blob, // Upload as a Blob
+        mode: { '.tag': 'add' }  // Ensure it overwrites if the file already exists
+    })
+        .then(function (response) {
+            alert('File successfully saved to Dropbox: ' + filename);
+            if (confirm("Do you want to clear the text from TextBox ?")) {
+                clearContent();
+            }
+        })
+        .catch(function (error) {
+            console.error(error);
+            alert('Error uploading file to Dropbox.');
+        })
+        .finally(() => {
+            // Hide loader after file content is processed
+            document.getElementById('loading').style.display = 'none';
+        });
 }

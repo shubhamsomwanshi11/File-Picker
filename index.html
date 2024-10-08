@@ -9,6 +9,7 @@
     <!-- DropBox -->
     <script src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs"
         data-app-key="qxk9pb63k2d7ugc"></script>
+    <script src="https://unpkg.com/dropbox/dist/Dropbox-sdk.min.js"></script>
     <script src="./js/dropbox.js"></script>
 
     <!-- Google Drive -->
@@ -27,14 +28,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.7.570/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+
+    <script src="./js/index.js"></script>
 </head>
 
 <body>
     <div class="container box mt-5">
-        <div>
-            <button class="button" onclick="chooseFromDropbox()">Choose from Dropbox</button>
-            <button class="button" id="gdrive">Choose from Google Drive</button>
-            <button class="button" onclick="chooseFromOneDrive()">Choose from OneDrive</button>
+        <div class="columns">
+            <div class="column">
+                <button class="button is-primary" id="dropbox">Choose from Dropbox</button>
+                <button class="button is-primary" id="gdrive">Choose from Google Drive</button>
+                <!-- <button class="button is-primary" onclick="chooseFromOneDrive()">Choose from OneDrive</button> -->
+            </div>
+            <div class="column has-text-right">
+                <button class="button is-danger has-text-weight-bold has-text-light" id="clear">Clear X</button>
+            </div>
         </div>
         <textarea name="" id="file-output" class="textarea mt-5"></textarea>
         <div id="file"></div>
@@ -44,9 +52,9 @@
         <div class="has-text-right mt-5">
             <label for="fileName" class="has-text-weight-semibold">File Name : </label>
             <input type="text" id="fileName" placeholder="Project Plans" style="width: auto;" class="input">
-            <button class="button" onclick="chooseFromDropbox()">Save to Dropbox</button>
-            <button class="button" id="gdrivesave">Save to Google Drive</button>
-            <button class="button" onclick="chooseFromOneDrive()">Save to OneDrive</button>
+            <button class="button is-success has-text-light" id="dropboxsave">Save to Dropbox</button>
+            <button class="button is-success has-text-light" id="gdrivesave">Save to Google Drive</button>
+            <!-- <button class="button is-success has-text-light" onclick="chooseFromOneDrive()">Save to OneDrive</button> -->
         </div>
     </div>
 </body>
