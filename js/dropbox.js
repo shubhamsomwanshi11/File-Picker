@@ -134,11 +134,11 @@ let accessToken = null;
 function authenticateDropbox() {
     return new Promise((resolve, reject) => {
         const dropboxAppKey = 'qxk9pb63k2d7ugc'; // Replace with your actual Dropbox App key
-        const redirectUri = window.location.origin + '/auth.html'; // Redirect to auth.html to handle token
+        const redirectUri = window.location.origin + window.location.pathname.replace(/\/$/, '') + '/auth.html';
         const dropboxOAuthUrl = `https://www.dropbox.com/oauth2/authorize?response_type=token&client_id=${dropboxAppKey}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
         // Open the Dropbox OAuth in a new popup window
-        const authWindow = window.open(dropboxOAuthUrl, 'DropboxAuth', 'width=600,height=500');
+        window.open(dropboxOAuthUrl, 'DropboxAuth', 'width=600,height=500');
 
         // Listen for message from the authentication popup
         window.addEventListener('message', function (event) {
